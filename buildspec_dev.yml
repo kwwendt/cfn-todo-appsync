@@ -1,0 +1,43 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - SCHEMA_LOCATION=s3://appsync-working-bucket/codebuild/$(uuidgen).graphql
+      - CREATE_RESOLVER=s3://appsync-working-bucket/codebuild/$(uuidgen).js
+      - UPDATE_RESOLVER=s3://appsync-working-bucket/codebuild/$(uuidgen).js
+      - DELETE_RESOLVER=s3://appsync-working-bucket/codebuild/$(uuidgen).js
+      - GET_RESOLVER=s3://appsync-working-bucket/codebuild/$(uuidgen).js
+      - LIST_RESOLVER=s3://appsync-working-bucket/codebuild/$(uuidgen).js
+      - QUERY_RESOLVER=s3://appsync-working-bucket/codebuild/$(uuidgen).js
+  build:
+    commands:
+      - aws s3 cp $CODEBUILD_SRC_DIR/schema.graphql $SCHEMA_LOCATION
+      - aws s3 cp $CODEBUILD_SRC_DIR/resolvers/createTodo.js $CREATE_RESOLVER
+      - aws s3 cp $CODEBUILD_SRC_DIR/resolvers/updateTodo.js $UPDATE_RESOLVER
+      - aws s3 cp $CODEBUILD_SRC_DIR/resolvers/deleteTodo.js $DELETE_RESOLVER
+      - aws s3 cp $CODEBUILD_SRC_DIR/resolvers/getTodo.js $GET_RESOLVER
+      - aws s3 cp $CODEBUILD_SRC_DIR/resolvers/listTodos.js $LIST_RESOLVER
+      - aws s3 cp $CODEBUILD_SRC_DIR/resolvers/queryTodosByOwner.js $QUERY_RESOLVER
+      - touch config.json
+      - |
+        cat << EOF > config.json
+        {
+          "Parameters": {
+            "AppSyncSchemaS3Location": "$SCHEMA_LOCATION",
+            "CreateToDoResolverS3Location": "$CREATE_RESOLVER",
+            "UpdateToDoResolverS3Location": "$UPDATE_RESOLVER",
+            "DeleteToDoResolverS3Location": "$DELETE_RESOLVER",
+            "GetToDoResolverS3Location": "$GET_RESOLVER",
+            "ListToDoResolverS3Location": "$LIST_RESOLVER",
+            "QueryToDosResolverS3Location": "$QUERY_RESOLVER"
+          }
+        }
+        EOF
+artifacts:
+  files:
+    - '**/*'
+  secondary-artifacts:
+    artifact1:
+      base-directory: $CODEBUILD_SRC_DIR
+      files:
+        - config.json
