@@ -1,6 +1,6 @@
 # Todo API
 
-This folder provides the implementation for a Todo API implemented with AppSync JavaScript resolvers.
+This folder provides the implementation for a Todo API implemented with AppSync JavaScript resolvers. It provides a sample `buildspec.yml` file which can be used inside CodeBuild to dynamically upload the schema and resolver files to Amazon S3 and reference them within the `template.yaml` file.
 The API allows you to interact with a Todo type:
 
 ```graphql
@@ -12,28 +12,11 @@ type Todo {
 }
 ```
 
-The [resolvers](./resolvers/) folder contains the code for the  resolvers.
+The [resolvers](./resolvers/) folder contains the code for the resolvers. When you keep resolver code separate, you can run automation tests on the resolver code to verify it's functional before updating your CloudFormation template to use the new code. In addition, keeping the code files separate allows you to version each file individually in your source code repository of choice.
 
-## Deploy the stack
+## CI/CD pipeline for this repo
 
-Deploy this stack by using [template.yaml](./template.yaml) from the Cloudformation console or using the AWS CLI.
-
-With the AWS CLI, from this folder:
-
-```sh
-aws cloudformation deploy --template-file ./template.yaml --stack-name simple-todo-api-app --capabilities CAPABILITY_IAM
-```
-
-Once deployed, you can find your API **SimpleTodoAPI** in the AWS console.
-
-## Delete the stack
-
-To delete your resources: visit the Cloudformation console and delete the stack.
-
-With the AWS CLI:
-
-```sh
-aws cloudformation delete-stack --stack-name simple-todo-api-app
-```
-
-Note: The DynamoDB table deployed by this template is retained when the stack is deleted.
+First, you can create an AWS CodeCommit repository or another source location for this code. Next, you should create an AWS CodePipeline with the following stages:
+- Source stage - CodeCommit or another source repository
+- Build stage - CodeBuild. This is where you can reference the `buildspec_dev.yml` file in this repository.
+- Deploy stage - CodeDeploy (deploying to CloudFormation)
